@@ -1,0 +1,152 @@
+---
+title: Data Visualisation project
+date: "2023-05-04"
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Background
+
+Both body image and body schema, when corrupted, have pronounced psychological and physical effects. Body image refers to conscious perceptions of our body and the way we believe we look *(Cash et al., 2002)*. It is, in essence, our self-image and the opinions we hold regarding the way we believe other people view us. By contrast, Body schema is considered to lay within the unconscious sphere of our understanding, with *Haggard and Wolpert (2005)* defining it as "a central representation of the positions of body parts in space, which is updated during body movement" and includes the arrangements of limbs, the configuration of these in space as well as the shape of the body. Much of the pre-existing literature alludes to a relationship or form of interplay between body image **(BI)** and body schema **(BS)**. However, the exact nature of this relationship lacks a conclusive definition or inclusive research. In fact, much of the existing literature fails to include male participants, leaving the unexplored question of how gender may impact on the BI-BS relationship.
+
+## Data origins
+
+The raw data for this project was collected during my undergraduate dissertation project. Body image (BI) scores are based on Likert-scale responses to the *Body Appreciation Scale-2 Questionnaire*. Responses to each question were summed to create a final score for each participant in which 10= negative body issue whilst 50= positive body image.
+
+Body Schema scores were based on a participant's ability to correctly estimate if they would fit through a gap by tracking their shoulder rotation as they walked through differently sized doorways. The rotation was assessed on a 3-point scale and the results of all trials were summed. In this case 12= accurate body schema (least rotation) and 36= distorted body image (most rotation).
+
+## Research Question and Rationale
+
+The rationale for this project was to both provide a visualization of the data I collected during my undergraduate project, as well as to explore the data in a slightly different way. The original project aimed to look at gender as a moderator of the relationship whilst in this project I aim to look at trends more generally. Although I understand the data already in terms of knowing gender does not *moderate* the relationship, the data suggested there were gender differences. I want to explore these further and answer the question of what are the gender differences in the relationship between body image and body schema.
+
+# Setup of the project
+
+**Firstly, the libraries that were to be used for this project are loaded in and installed if not already.**
+
+```{r, results=FALSE, message=FALSE}
+# Load libraries that the project will use
+library(here)
+library(tidyverse)
+library(RColorBrewer)
+library(readr)
+library(ggplot2)
+```
+
+**Then the data is loaded into R and assigned to a data frame.**
+
+```{r, results=FALSE, message=FALSE}
+# Use library(here) to import the data and assign it to a data frame 
+# Importing the data from Github and setting it as a data frame
+df <- read.csv("https://raw.githubusercontent.com/hannahcsx/PSY6422_Project/main/project_data.csv")
+```
+
+```{r}
+# Check data frame
+head(df)
+```
+
+# Preparing the data for visualization
+
+**An extra variable is used and Gender is converted from 1&2 to Males & Female**
+
+```{r}
+# Converting the data we have, currently gender is represented as 1 for male and 2 for female so we need to change this so we'll use a new variable 
+# Find the average of the data we're using so we'll need another variable for later
+df$Gender_converted <- ifelse(df$Gender ==1, "male", "female")
+avg_bs <- mean(df$BS)
+avg_bi <- mean(df$BI)
+```
+
+### Male Data Summary:
+
+| **Body Image** | **Body Schema** |
+|----------------|-----------------|
+| *Mean*= 34.23  | *Mean*= 13.5    |
+| *SD*= 6.56     | *SD*= 2.37      |
+
+### Female Data Summary:
+
+| **Body Image** | **Body Schema** |
+|----------------|-----------------|
+| *Mean*= 52.6   | *Mean*= 14.74   |
+| *SD*= 7.50     | *SD*= 2.32      |
+
+# Visualizing the data
+
+**The following creates a Scatter plot with a line of best fit**
+
+```{r, results=FALSE, message=FALSE}
+# Using ggplot to create a Scatter Plot with BS vs BI 
+p0 <- ggplot(df,aes(x=BS,y=BI,group=Gender_converted))+
+        ggtitle("Scatter plot of BS vs BI with line of best fit for male and female")+
+        geom_point(aes(color=Gender_converted))+
+        scale_color_manual(values=c('Red','Blue'))+
+        geom_smooth(method = "lm", se = FALSE)
+
+#Save image
+ggsave("BS_BIScatterPlot.png", plot =p0, width=6, height=4, dpi=300)
+```
+
+![](Figures/BS_BIScatterPlot.png)
+
+A scatter-plot was chosen to see the overall spread of data, as well as which data points were male and female. This, along with lines of best fit allows us to see the correlation between BI and BS for both male and female and reveals vastly different trends for both. It also allows us to see how these trends vary from averages. However, Although this graph reveals different correlational relationships between male and female participants, it does not as easily show how scores on each conditions varied and thus histograms were needed.
+
+**The following creates a histograms with a line of mean average**
+
+```{r, results=FALSE, message=FALSE}
+# Using ggplot to create a Histogram with male and female BS scores with a mean line
+
+p1 <- ggplot(df, aes(x = BS, fill = Gender_converted)) +
+        geom_histogram(binwidth = 1, color="grey") +
+        geom_vline(xintercept = avg_bs, color="black", linetype="dashed")+
+        ggtitle("Histogram of BS, by Gender") +
+        xlab("Value of BS") +
+        ylab("Count") 
+ 
+#Save image
+ggsave("BSHistogramWithMeanLine.png", plot =p1, width=6, height=4, dpi=300)
+
+# Same as above but using BI instead  
+  
+p2 <- ggplot(df, aes(x = BI, fill = Gender_converted)) +
+        geom_histogram(binwidth = 1, color="grey") +
+        geom_vline(xintercept = avg_bi, color="black", linetype="dashed")+
+        ggtitle("Histogram of BI, by Gender") +
+        xlab("Value of BI") +
+        ylab("Count")
+
+#Save image
+ggsave("BIHistogramWithMeanLine.png", plot =p2, width=6, height=4, dpi=300)
+```
+
+![](Figures/BSHistogramWithMeanLine.png)
+
+![](Figures/BIHistogramWithMeanLine.png)
+
+The Histograms reveal much clearer differences between male and female participants in terms of scores on each conditions.
+
+# Discussion
+
+The histograms reveal that Male participants, on average, had a more positive body image than female participants. Male participants were also found to have more accurate body schema compared to female participants whose body schema were slightly more distorted. Male participants had the biggest score range for body schema, with scores ranging from 12-20 (compared to female participants whose scores only ranged from 12-18). Whereas female participants had the biggest score range for body image (ranging from 14-48) compared to males (scores for whom ranged from 28-47). This suggests that there may be gender differences in body image and body schema.
+
+The scatter-plot reveals significant gender differences in the relationship between BI and BS: Literature suggests that body image and body schema are innately linked and as one worsens, so does the other. Whilst female participants showed the expected negative correlation between BS and BI in which as BI scores increased (indicating positive body image) BS scores decreased (indicating accurate body schema), male participants showed a positive correlation which contradicts the literature and differs dramatically from that of female participants. Again, suggesting there may be gender differences.
+
+## Limitations and future directions
+
+Although these visualization reveal that there are gender differences in both body image, body schema, and the relationship between the both, it does not reveal if these would be statistically significant, which could be seen as a limitation. Although there are score differences, if these are not found to have any statistical value then the differences *seemingly* caused by gender can be discounted. However, the visualization may provide rationale for further statistical analysis or research.
+
+Similarly, the data set constitutes a relatively small sample since it is from a dissertation study and thus the effects of gender on the data may be overly or under-represented in the sample. Due to the lack of existing research using male participants in the realm of body image and body schema it seems important to pursue further, bigger scale research into gender differences between body image, body schema, and their relationship, especially as the visualization created here suggests that gender may be a relevant determinant of this relationship. Therefore
+
+The repository for this project including the markdown file, raw data, code-book and other files) is available online via github.
+
+### References
+
+Cash, TF., Fleming, EC., Alindogan, J., Steadman, L. & Whitehead, A. (2002). Beyong body image as a trait: the development and validation of the Body Image States Scale. *Eat Discord*, 10(2), pp 103-113.
+
+Haggard P., Wolpert D. (2005). *"Disorders of body schema,"* in High-Order Motor Disorders: From Neuroanatomy and Neurobiology to Clinical Neurology, eds Freund J., Jeannerod M., Hallett M., Leiguarda R. (Oxford: Oxford University Press), 261--271.
